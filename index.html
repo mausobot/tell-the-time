@@ -117,11 +117,11 @@ function generateQuestions(){
   for(let i=0;i<5;i++){const t=easyTimes[i];qs.push({h:t[0],m:t[1],clockType:'numbered',diff:'easy'})}
   // Q6-10 medium
   const medMins=[5,10,20,25,35,40,50,55];
-  for(let i=0;i<5;i++){const h=randInt(1,12),m=medMins[randInt(0,medMins.length-1)];qs.push({h,m,clockType:i<3?'numbered':'roman',diff:'medium'})}
+  for(let i=0;i<5;i++){const h=randInt(1,12),m=medMins[randInt(0,medMins.length-1)];qs.push({h,m,clockType:['numbered','roman','digital'][randInt(0,2)],diff:'medium'})}
   // Q11-15 hard
-  for(let i=0;i<5;i++){const h=randInt(1,12),m=randEl([0,5,10,15,20,25,30,35,40,45,50,55]);qs.push({h,m,clockType:i<2?'roman':'unnumbered',diff:'hard'})}
+  for(let i=0;i<5;i++){const h=randInt(1,12),m=randEl([0,5,10,15,20,25,30,35,40,45,50,55]);qs.push({h,m,clockType:['roman','unnumbered','digital'][randInt(0,2)],diff:'hard'})}
   // Q16-20 hardest
-  for(let i=0;i<5;i++){const h=randInt(1,12),m=randEl([0,5,10,15,20,25,30,35,40,45,50,55]);qs.push({h,m,clockType:i<3?'unnumbered':'digital',diff:'hardest'})}
+  for(let i=0;i<5;i++){const h=randInt(1,12),m=randEl([0,5,10,15,20,25,30,35,40,45,50,55]);qs.push({h,m,clockType:['unnumbered','digital'][randInt(0,1)],diff:'hardest'})}
   return qs;
 }
 
