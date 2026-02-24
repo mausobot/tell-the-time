@@ -152,11 +152,13 @@ function showQuestion(){
   const distractors=generateDistractors(q.h,q.m,useWords);
   const options=shuffle([correct,...distractors]);
 
+  document.activeElement&&document.activeElement.blur();
   const answersDiv=document.getElementById('answers');
   answersDiv.innerHTML='';
   options.forEach(opt=>{
     const b=document.createElement('button');b.className='answer-btn';b.textContent=opt;
-    b.onclick=()=>selectAnswer(b,opt,correct);answersDiv.appendChild(b);
+    b.addEventListener('touchend',e=>{e.preventDefault();selectAnswer(b,opt,correct)});
+    b.onclick=e=>{if(e.pointerType!=='touch')selectAnswer(b,opt,correct)};answersDiv.appendChild(b);
   });
   qStart=Date.now();
 }
