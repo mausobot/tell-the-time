@@ -53,8 +53,6 @@ canvas{border-radius:50%}
 <div class="screen active" id="welcome">
 <h1>🕐 Tell the Time!</h1>
 <p class="subtitle">Can you read the clock?</p>
-<input type="text" id="nameInput" placeholder="Enter your name" maxlength="20" autofocus>
-<br>
 <button onclick="startGame()">Play! 🎮</button>
 <div class="btn-group" style="margin-top:20px">
 <button onclick="showLeaderboard()" style="background:var(--light);color:var(--dark);font-size:.9em;padding:10px 20px">🏆 Leaderboard</button>
@@ -76,6 +74,11 @@ canvas{border-radius:50%}
 <h2 id="resultTitle">Well done!</h2>
 <p class="subtitle" id="resultMsg"></p>
 <div class="score-display" id="finalScore"></div>
+<div id="nameEntry" style="margin:16px 0">
+<input type="text" id="nameInput" placeholder="Enter your name" maxlength="20">
+<br>
+<button onclick="saveScore()" style="margin-top:8px">Save Score 💾</button>
+</div>
 <div id="resultBoard"></div>
 <div class="btn-group">
 <button onclick="startGame()">Play Again 🔄</button>
@@ -104,7 +107,6 @@ const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 
 function startGame(){
-  playerName=document.getElementById('nameInput').value.trim()||'Player';
   score=0;qIndex=0;questions=generateQuestions();
   document.getElementById('score').textContent='0';
   showScreen('game');showQuestion();
@@ -267,10 +269,23 @@ async function endGame(){
   const title=pct>=.8?'Amazing!':pct>=.5?'Well done!':'Keep practising!';
   document.getElementById('resultEmoji').textContent=emoji;
   document.getElementById('resultTitle').textContent=title;
-  document.getElementById('resultMsg').textContent=`${playerName}, you scored:`;
+  document.getElementById('resultMsg').textContent='You scored:';
   document.getElementById('finalScore').textContent=score+' / 4000';
+  document.getElementById('nameEntry').style.display='block';
+  document.getElementById('nameInput').value='';
+  document.getElementById('resultBoard').innerHTML='';
   showScreen('result');
   if(pct>=.5)spawnConfetti();
+  // Load existing leaderboard
+  try{
+    const res=await fetch(API);const data=await res.json();
+    document.getElementById('resultBoard').innerHTML=renderBoard(data);
+  }catch(e){}
+}
+
+async function saveScore(){
+  playerName=document.getElementById('nameInput').value.trim()||'Player';
+  document.getElementById('nameEntry').style.display='none';
   try{
     const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:playerName,score})});
     const data=await res.json();
