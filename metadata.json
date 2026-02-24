@@ -1,0 +1,5 @@
+{
+  "main_module": "worker.js",
+  "bindings": [{"type":"kv_namespace","name":"TELL_THE_TIME_SCORES","namespace_id":"b7dcea9f36784aff80120e36ab9057a0"}],
+  "compatibility_date": "2024-01-01"
+}
