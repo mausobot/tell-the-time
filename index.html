@@ -24,9 +24,9 @@ input[type=text]:focus{border-color:var(--dark);box-shadow:0 0 0 3px rgba(236,72
 canvas{border-radius:50%}
 .digital-clock{font-family:'Courier New',monospace;font-size:3.5em;font-weight:bold;color:var(--dark);background:#1a0a10;padding:20px 36px;border-radius:16px;display:inline-block;text-shadow:0 0 10px var(--pink),0 0 20px var(--pink);letter-spacing:4px;border:3px solid var(--dark)}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
-.answer-btn{background:var(--white);color:#1f2937;border:3px solid var(--light);padding:12px 8px;border-radius:12px;font-size:1em;font-weight:500;transition:all .2s;-webkit-tap-highlight-color:transparent;outline:none}
-.answer-btn:hover{border-color:var(--pink);background:var(--light);transform:scale(1.03)}
-.answer-btn:focus{outline:none;box-shadow:none}
+.answer-btn{background:var(--white);color:#1f2937;border:3px solid var(--light);padding:12px 8px;border-radius:12px;font-size:1em;font-weight:500;transition:all .2s;-webkit-tap-highlight-color:transparent;outline:none;user-select:none;-webkit-user-select:none}
+@media(hover:hover){.answer-btn:hover{border-color:var(--pink);background:var(--light);transform:scale(1.03)}}
+.answer-btn:focus{outline:none;box-shadow:none;border-color:var(--light)}
 .answer-btn.correct{background:#22c55e;color:var(--white);border-color:#16a34a}
 .answer-btn.wrong{background:#ef4444;color:var(--white);border-color:#dc2626}
 .progress{background:var(--light);border-radius:99px;height:10px;margin-bottom:16px;overflow:hidden}
