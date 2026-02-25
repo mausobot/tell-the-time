@@ -209,34 +209,34 @@ function showQuestion(){
 }
 
 function drawEasyClock(canvas,h,m){
-  const ctx=canvas.getContext('2d'),cx=130,cy=130,r=115;
-  // Face
-  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
-  ctx.lineWidth=4;ctx.strokeStyle='#ec4899';ctx.stroke();
-
-  // Hour numbers in red
-  for(let i=1;i<=12;i++){
-    const angle=(i*30-90)*Math.PI/180;
-    ctx.font='bold 18px system-ui';ctx.fillStyle='#dc2626';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(i,cx+Math.cos(angle)*72,cy+Math.sin(angle)*72);
-  }
-
-  // Minute numbers in blue (0,5,10,...55) on outer ring
+  const ctx=canvas.getContext('2d'),cx=130,cy=130,r=88;
+  // Blue minute numbers OUTSIDE the clock face
   for(let i=0;i<12;i++){
     const minVal=i*5;
     const angle=(i*30-90)*Math.PI/180;
-    ctx.font='bold 11px system-ui';ctx.fillStyle='#2563eb';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(minVal,cx+Math.cos(angle)*97,cy+Math.sin(angle)*97);
+    ctx.font='bold 12px system-ui';ctx.fillStyle='#2563eb';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(minVal,cx+Math.cos(angle)*112,cy+Math.sin(angle)*112);
   }
 
-  // Tick marks
+  // Clock face — grey border
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  ctx.lineWidth=4;ctx.strokeStyle='#9ca3af';ctx.stroke();
+
+  // Tick marks on the edge
   for(let i=0;i<60;i++){
     const angle=(i*6-90)*Math.PI/180;
     const isHour=i%5===0;
     const len=isHour?8:4;
     const ox=Math.cos(angle),oy=Math.sin(angle);
     ctx.beginPath();ctx.moveTo(cx+ox*(r-2),cy+oy*(r-2));ctx.lineTo(cx+ox*(r-2-len),cy+oy*(r-2-len));
-    ctx.lineWidth=isHour?2:1;ctx.strokeStyle=isHour?'#dc2626':'#ccc';ctx.stroke();
+    ctx.lineWidth=isHour?2:1;ctx.strokeStyle=isHour?'#6b7280':'#d1d5db';ctx.stroke();
+  }
+
+  // Hour numbers in red INSIDE the clock
+  for(let i=1;i<=12;i++){
+    const angle=(i*30-90)*Math.PI/180;
+    ctx.font='bold 18px system-ui';ctx.fillStyle='#dc2626';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(i,cx+Math.cos(angle)*65,cy+Math.sin(angle)*65);
   }
 
   // Center dot
@@ -245,13 +245,13 @@ function drawEasyClock(canvas,h,m){
   // Hour hand — RED
   const hAngle=((h%12)+m/60)*30-90;
   const hr=hAngle*Math.PI/180;
-  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(hr)*48,cy+Math.sin(hr)*48);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(hr)*42,cy+Math.sin(hr)*42);
   ctx.lineWidth=6;ctx.lineCap='round';ctx.strokeStyle='#dc2626';ctx.stroke();
 
   // Minute hand — BLUE
   const mAngle=m*6-90;
   const mr=mAngle*Math.PI/180;
-  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(mr)*80,cy+Math.sin(mr)*80);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(mr)*72,cy+Math.sin(mr)*72);
   ctx.lineWidth=4;ctx.lineCap='round';ctx.strokeStyle='#2563eb';ctx.stroke();
 }
 
