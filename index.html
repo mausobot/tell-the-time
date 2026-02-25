@@ -45,6 +45,10 @@ canvas{border-radius:50%}
 .confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
 .star{position:absolute;font-size:1.5em;animation:fall linear forwards}
 @keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.diff-btn{padding:12px 24px;border-radius:12px;font-size:1em;font-weight:600;cursor:pointer;border:3px solid var(--light);background:var(--white);color:var(--dark);transition:all .2s;-webkit-tap-highlight-color:transparent}
+.diff-btn.selected{background:var(--pink);color:var(--white);border-color:var(--dark)}
+.diff-selector{display:flex;gap:10px;justify-content:center;margin:20px 0}
+.diff-label{color:var(--pink);font-size:.85em;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -53,7 +57,13 @@ canvas{border-radius:50%}
 <div class="screen active" id="welcome">
 <h1>🕐 Tell the Time!</h1>
 <p class="subtitle">Can you read the clock?</p>
-<button onclick="startGame()">Play! 🎮</button>
+<div class="diff-label">Choose difficulty:</div>
+<div class="diff-selector">
+<button class="diff-btn selected" onclick="setDiff('easy',this)">Easy</button>
+<button class="diff-btn" onclick="setDiff('medium',this)">Medium</button>
+<button class="diff-btn" onclick="setDiff('hard',this)">Hard</button>
+</div>
+<button onclick="startGame()" style="margin-top:12px">Play! 🎮</button>
 <div class="btn-group" style="margin-top:20px">
 <button onclick="showLeaderboard()" style="background:var(--light);color:var(--dark);font-size:.9em;padding:10px 20px">🏆 Leaderboard</button>
 </div>
@@ -101,8 +111,15 @@ canvas{border-radius:50%}
 <script>
 const API='https://tell-the-time-api.cloudflarepages-585.workers.dev/api/scores';
 let playerName='',score=0,qIndex=0,questions=[],qStart=0,locked=false;
+let difficulty='easy';
 
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+
+function setDiff(d,btn){
+  difficulty=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
 
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 
@@ -114,16 +131,28 @@ function startGame(){
 
 function generateQuestions(){
   const qs=[];
-  // Q1-5 easy
-  const easyTimes=[[12,0],[3,0],[7,0],[2,30],[9,30],[6,15],[11,45],[4,15],[8,45],[1,30]];
-  for(let i=0;i<5;i++){const t=easyTimes[i];qs.push({h:t[0],m:t[1],clockType:'numbered',diff:'easy'})}
-  // Q6-10 medium
-  const medMins=[5,10,20,25,35,40,50,55];
-  for(let i=0;i<5;i++){const h=randInt(1,12),m=medMins[randInt(0,medMins.length-1)];qs.push({h,m,clockType:['numbered','roman','digital'][randInt(0,2)],diff:'medium'})}
-  // Q11-15 hard
-  for(let i=0;i<5;i++){const h=randInt(1,12),m=randEl([0,5,10,15,20,25,30,35,40,45,50,55]);qs.push({h,m,clockType:['roman','unnumbered','digital'][randInt(0,2)],diff:'hard'})}
-  // Q16-20 hardest
-  for(let i=0;i<5;i++){const h=randInt(1,12),m=randEl([0,5,10,15,20,25,30,35,40,45,50,55]);qs.push({h,m,clockType:['unnumbered','digital'][randInt(0,1)],diff:'hardest'})}
+  const allMins=[0,5,10,15,20,25,30,35,40,45,50,55];
+
+  if(difficulty==='easy'){
+    // 20 random questions, all 5-min increments, single clock type (easy-analogue)
+    for(let i=0;i<20;i++){
+      qs.push({h:randInt(1,12),m:randEl(allMins),clockType:'easy-analogue'});
+    }
+  } else if(difficulty==='medium'){
+    // Numbered analogue only, difficulty progression
+    const easyTimes=[[12,0],[3,0],[7,0],[2,30],[9,30],[6,15],[11,45],[4,15],[8,45],[1,30]];
+    for(let i=0;i<5;i++){const t=easyTimes[i];qs.push({h:t[0],m:t[1],clockType:'numbered'})}
+    const medMins=[5,10,20,25,35,40,50,55];
+    for(let i=0;i<5;i++){qs.push({h:randInt(1,12),m:randEl(medMins),clockType:'numbered'})}
+    for(let i=0;i<10;i++){qs.push({h:randInt(1,12),m:randEl(allMins),clockType:'numbered'})}
+  } else {
+    // Hard: all clock types, full progression
+    const easyTimes=[[12,0],[3,0],[7,0],[2,30],[9,30],[6,15],[11,45],[4,15],[8,45],[1,30]];
+    for(let i=0;i<5;i++){const t=easyTimes[i];qs.push({h:t[0],m:t[1],clockType:'numbered'})}
+    for(let i=0;i<5;i++){qs.push({h:randInt(1,12),m:randEl([5,10,20,25,35,40,50,55]),clockType:['numbered','roman','digital'][randInt(0,2)]})}
+    for(let i=0;i<5;i++){qs.push({h:randInt(1,12),m:randEl(allMins),clockType:['roman','unnumbered','digital'][randInt(0,2)]})}
+    for(let i=0;i<5;i++){qs.push({h:randInt(1,12),m:randEl(allMins),clockType:['unnumbered','digital'][randInt(0,1)]})}
+  }
   return qs;
 }
 
@@ -143,14 +172,28 @@ function showQuestion(){
     const d=document.createElement('div');d.className='digital-clock';
     d.textContent=`${q.h}:${q.m.toString().padStart(2,'0')}`;
     container.appendChild(d);
+  } else if(q.clockType==='easy-analogue'){
+    const c=document.createElement('canvas');c.width=260;c.height=260;
+    container.appendChild(c);drawEasyClock(c,q.h,q.m);
   } else {
     const c=document.createElement('canvas');c.width=220;c.height=220;
     container.appendChild(c);drawClock(c,q.h,q.m,q.clockType);
   }
 
-  // Generate answers - digital clock must use word answers
-  const useWords=q.clockType==='digital'||Math.random()<0.5;
-  const correct=useWords?timeToWords(q.h,q.m):timeToDigit(q.h,q.m);
+  // Determine answer format
+  let useWords, correct;
+  if(difficulty==='easy'){
+    // Always digit format, not zero-padded
+    correct=timeToDigit(q.h,q.m);
+    useWords=false;
+  } else if(q.clockType==='digital'){
+    correct=timeToWords(q.h,q.m);
+    useWords=true;
+  } else {
+    useWords=Math.random()<0.5;
+    correct=useWords?timeToWords(q.h,q.m):timeToDigit(q.h,q.m);
+  }
+
   const distractors=generateDistractors(q.h,q.m,useWords);
   const options=shuffle([correct,...distractors]);
 
@@ -165,13 +208,58 @@ function showQuestion(){
   qStart=Date.now();
 }
 
-function drawClock(canvas,h,m,type){
-  const ctx=canvas.getContext('2d'),cx=110,cy=110,r=95;
+function drawEasyClock(canvas,h,m){
+  const ctx=canvas.getContext('2d'),cx=130,cy=130,r=115;
   // Face
   ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
   ctx.lineWidth=4;ctx.strokeStyle='#ec4899';ctx.stroke();
 
-  // Markings
+  // Hour numbers in red
+  for(let i=1;i<=12;i++){
+    const angle=(i*30-90)*Math.PI/180;
+    ctx.font='bold 18px system-ui';ctx.fillStyle='#dc2626';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(i,cx+Math.cos(angle)*72,cy+Math.sin(angle)*72);
+  }
+
+  // Minute numbers in blue (0,5,10,...55) on outer ring
+  for(let i=0;i<12;i++){
+    const minVal=i*5;
+    const angle=(i*30-90)*Math.PI/180;
+    ctx.font='bold 11px system-ui';ctx.fillStyle='#2563eb';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(minVal,cx+Math.cos(angle)*97,cy+Math.sin(angle)*97);
+  }
+
+  // Tick marks
+  for(let i=0;i<60;i++){
+    const angle=(i*6-90)*Math.PI/180;
+    const isHour=i%5===0;
+    const len=isHour?8:4;
+    const ox=Math.cos(angle),oy=Math.sin(angle);
+    ctx.beginPath();ctx.moveTo(cx+ox*(r-2),cy+oy*(r-2));ctx.lineTo(cx+ox*(r-2-len),cy+oy*(r-2-len));
+    ctx.lineWidth=isHour?2:1;ctx.strokeStyle=isHour?'#dc2626':'#ccc';ctx.stroke();
+  }
+
+  // Center dot
+  ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle='#666';ctx.fill();
+
+  // Hour hand — RED
+  const hAngle=((h%12)+m/60)*30-90;
+  const hr=hAngle*Math.PI/180;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(hr)*48,cy+Math.sin(hr)*48);
+  ctx.lineWidth=6;ctx.lineCap='round';ctx.strokeStyle='#dc2626';ctx.stroke();
+
+  // Minute hand — BLUE
+  const mAngle=m*6-90;
+  const mr=mAngle*Math.PI/180;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(mr)*80,cy+Math.sin(mr)*80);
+  ctx.lineWidth=4;ctx.lineCap='round';ctx.strokeStyle='#2563eb';ctx.stroke();
+}
+
+function drawClock(canvas,h,m,type){
+  const ctx=canvas.getContext('2d'),cx=110,cy=110,r=95;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  ctx.lineWidth=4;ctx.strokeStyle='#ec4899';ctx.stroke();
+
   for(let i=1;i<=12;i++){
     const angle=(i*30-90)*Math.PI/180;
     if(type==='numbered'){
@@ -188,16 +276,13 @@ function drawClock(canvas,h,m,type){
     }
   }
 
-  // Center dot
   ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='#be185d';ctx.fill();
 
-  // Hour hand
   const hAngle=((h%12)+m/60)*30-90;
   const hr=hAngle*Math.PI/180;
   ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(hr)*45,cy+Math.sin(hr)*45);
   ctx.lineWidth=6;ctx.lineCap='round';ctx.strokeStyle='#be185d';ctx.stroke();
 
-  // Minute hand
   const mAngle=m*6-90;
   const mr=mAngle*Math.PI/180;
   ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(mr)*70,cy+Math.sin(mr)*70);
@@ -226,7 +311,6 @@ function timeToDigit(h,m){return h+':'+m.toString().padStart(2,'0')}
 function generateDistractors(h,m,useWords){
   const set=new Set();
   const correct=useWords?timeToWords(h,m):timeToDigit(h,m);
-  // Strategies: nearby minutes, swap hour, swap hands, random
   const tries=[[h,((m+5)%60)],[h,((m+55)%60)],[h,((m+15)%60)],[h,((m+30)%60)],
     [h%12+1,m],[(h+5)%12+1,m],[h%12+1,((m+30)%60)],[m%12||12,h*5%60],
     [(h+2)%12+1,m],[h,(m+10)%60],[h,(m+50)%60],[(h+6)%12+1,m]];
@@ -276,7 +360,6 @@ async function endGame(){
   document.getElementById('resultBoard').innerHTML='';
   showScreen('result');
   if(pct>=.5)spawnConfetti();
-  // Load existing leaderboard
   try{
     const res=await fetch(API);const data=await res.json();
     document.getElementById('resultBoard').innerHTML=renderBoard(data);
@@ -287,7 +370,7 @@ async function saveScore(){
   playerName=document.getElementById('nameInput').value.trim()||'Player';
   document.getElementById('nameEntry').style.display='none';
   try{
-    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:playerName,score})});
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:playerName,score,difficulty})});
     const data=await res.json();
     document.getElementById('resultBoard').innerHTML=renderBoard(data);
   }catch(e){document.getElementById('resultBoard').innerHTML='<p>Could not save score</p>'}
@@ -307,7 +390,8 @@ function renderBoard(data){
   let html='<div class="leaderboard"><table><tr><th>#</th><th>Name</th><th>Score</th><th>Date</th></tr>';
   data.forEach((s,i)=>{
     const d=new Date(s.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    html+=`<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${s.score}</td><td>${d}</td></tr>`;
+    const diff=s.difficulty?' ('+s.difficulty[0].toUpperCase()+')':'';
+    html+=`<tr><td>${i+1}</td><td>${esc(s.name)}${diff}</td><td>${s.score}</td><td>${d}</td></tr>`;
   });
   return html+'</table></div>';
 }
@@ -325,8 +409,6 @@ function spawnConfetti(){
   }
   setTimeout(()=>c.innerHTML='',5000);
 }
-
-document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')startGame()});
 </script>
 </body>
 </html>
